@@ -5,10 +5,17 @@ Small MCP server with two tools:
 - adb logcat reader with package/pid/tag filters for quick crash triage.
 
 ## Why this exists
-- Speed up “SVG to VectorDrawable” without opening Android Studio.
-- Grab and filter adb logs (package/pid/tag) directly from MCP clients.
-- Provide consistent, scriptable output for MCP agents.
-- Leave room to add more Android utilities (e.g., bitmap → vector helpers, asset validators) under the same MCP server in the future.
+**The Mission: Bringing Native Android to the AI Agent Era**
+
+While the AI ecosystem flourishes with web-first tools, Android development often feels left behind. This MCP server is my answer to that gap—a dedicated bridge connecting AI Agents directly to the Android toolchain.
+
+⚡ Zero-Friction Asset Conversion: Convert SVGs to VectorDrawables instantly without the overhead of launching Android Studio.
+
+🔍 Direct Diagnostic Access: Empower agents to pull, filter, and analyze adb logcat streams (by package, PID, or tag) in real-time.
+
+🤖 Agent-Native Architecture: Deliver structured, scriptable outputs that LLMs can parse and act upon efficiently.
+
+🚀 Built for Extensibility: A solid foundation designed to grow, paving the way for future utilities like bitmap helpers and asset validation.
 
 ## Pairing ideas
 - **Figma MCP**: grab SVGs from designs, feed to `convert-svg-to-android-drawable` to get XML for Android resources.
@@ -43,6 +50,27 @@ Small MCP server with two tools:
   - Behavior: Runs `adb logcat -d -t <maxLines>` with optional `--pid=<pid>` and `-s tag:priority`.
   - Output: Returns the logcat text; if no lines are returned, responds with a short message.
   - Notes: Requires `adb` available in PATH and a connected device/emulator. Provide at least one of `packageName`, `pid`, or `tag` to scope logs.
+
+- `get-pid-by-package`
+  - Inputs: `packageName` (required), `timeoutMs` (default `5000`, max `15000`).
+  - Behavior: Resolves pid via `adb shell pidof -s <package>`.
+  - Notes: Use this first, then pass pid to other logcat tools for noise-free filtering.
+
+- `get-current-activity`
+  - Inputs: `timeoutMs` (default `5000`, max `15000`).
+  - Behavior: Parses `adb shell dumpsys window` for `mCurrentFocus` / `mFocusedApp` to reveal the currently focused window (useful even in single-activity setups to confirm top window).
+
+- `fetch-crash-stacktrace`
+  - Inputs: `packageName` (optional, resolves pid), `maxLines` (default `400`, max `2000`), `timeoutMs` (default `5000`, max `15000`).
+  - Behavior: Pulls crash buffer via `adb logcat -b crash -d -t <maxLines>`; filters by `--pid` when package is provided.
+
+- `check-anr-state`
+  - Inputs: `maxLines` (default `400`, max `2000`), `timeoutMs` (default `5000`, max `15000`).
+  - Behavior: Fetches `ActivityManager:E *:S` (recent ANR logs) and best-effort reads `/data/anr/traces.txt` (stat + tail 200 lines). May require root/debuggable.
+
+- `clear-logcat-buffer`
+  - Inputs: `timeoutMs` (default `5000`, max `15000`).
+  - Behavior: Runs `adb logcat -c` to clear buffers before a new scenario.
 
 ## Roadmap (planned)
 - Additional MCP tools for Android assets (e.g., batch conversions, validations, optimizers).
