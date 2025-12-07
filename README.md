@@ -41,6 +41,30 @@ Small MCP server that turns SVG markup/files into Android VectorDrawable XML. Bu
 - Run: `docker run --rm -it svg-to-drawable-mcp`
 - The container prints to stdio; point your MCP client at `docker run --rm -i svg-to-drawable-mcp`.
 
+## Use in Cursor (MCP config)
+Add to your Cursor settings JSON:
+```json
+{
+  "mcpServers": {
+    "figma-desktop": {
+      "url": "http://127.0.0.1:3845/mcp"
+    },
+    "svg-to-android-drawable": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "/Users/admin/code/android_util_mcp_server"
+      ]
+    }
+  }
+}
+```
+Adjust the local path if your repo lives elsewhere.
+
+## Examples
+- Input SVG: `sample_svg.svg`
+- Output VectorDrawable: `examples/sample_svg.xml`
+
 ## Notes
 - Transport: stdio via `@modelcontextprotocol/sdk`.
 - Base deps kept minimal; everything needed to convert SVGs is vendored/included.
