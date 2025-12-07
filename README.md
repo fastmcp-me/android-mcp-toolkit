@@ -83,15 +83,11 @@ While the AI ecosystem flourishes with web-first tools, Android development ofte
 
 ## Quick start
 - `npm install`
-- `npm start` (keeps running on stdio; point your MCP client at `node src/index.js`)
+- `npm run build`
+- `node dist/index.js` (stdio MCP server)
 
 ## Run via npx
-- From repo root: `npx .` (uses `svg-to-drawable-mcp` bin; runs on stdio)
-
-## Run with Docker
-- Build: `docker build -t svg-to-drawable-mcp .`
-- Run: `docker run --rm -it svg-to-drawable-mcp`
-- The container prints to stdio; point your MCP client at `docker run --rm -i svg-to-drawable-mcp`.
+- Global: `npx android-mcp-toolkit`
 
 ## Use in Cursor (MCP config)
 Add to your Cursor settings JSON:
@@ -101,17 +97,20 @@ Add to your Cursor settings JSON:
     "figma-desktop": {
       "url": "http://127.0.0.1:3845/mcp"
     },
-    "svg-to-android-drawable": {
+    "android-mcp-toolkit": {
       "command": "npx",
       "args": [
         "-y",
-        "/Users/admin/code/android_util_mcp_server"
+        "android-mcp-toolkit"
       ]
     }
   }
 }
 ```
-Adjust the local path if your repo lives elsewhere.
+The npx call downloads the published package; no local path required.
+
+Quick install via Cursor deep link:
+- `cursor://anysphere.cursor-deeplink/mcp/install?name=android-mcp-toolkit&config=eyJjb21tYW5kIjoibnB4IC15IGFuZHJvaWQtbWNwLXRvb2xraXQifQ%3D%3D`
 
 ## Examples
 - Input SVG: `sample_svg.svg`

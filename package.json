@@ -1,10 +1,12 @@
 {
-  "name": "android_util_mcp_server",
+  "name": "android-mcp-toolkit",
   "version": "1.1.0",
   "description": "MCP server that converts SVG into Android VectorDrawable XML with a fast path and caching.",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node dist/index.js",
+    "build": "tsup",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "mcp",
@@ -13,16 +15,23 @@
     "svg"
   ],
   "bin": {
-    "svg-to-drawable-mcp": "src/index.js"
+    "android-mcp-toolkit": "dist/index.js"
   },
+  "files": [
+    "dist"
+  ],
   "author": "",
   "license": "MIT",
   "type": "commonjs",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.24.3",
-    "svgo": "^2.8.0",
     "svg-path-bounds": "^1.0.1",
+    "svgo": "^2.8.0",
     "svgpath": "^2.5.0",
     "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.9.3"
   }
 }
