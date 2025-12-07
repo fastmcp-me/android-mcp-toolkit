@@ -1,16 +1,18 @@
 # Android MCP Toolkit for AI Agents
 
-Small MCP server that turns SVG markup/files into Android VectorDrawable XML. Built to be dropped into MCP-friendly clients and to grow with more Android utility tools over time.
+Small MCP server with two tools:
+- Fast SVG → Android VectorDrawable conversion (cached, file or inline).
+- adb logcat reader with package/pid/tag filters for quick crash triage.
 
 ## Why this exists
 - Speed up “SVG to VectorDrawable” without opening Android Studio.
+- Grab and filter adb logs (package/pid/tag) directly from MCP clients.
 - Provide consistent, scriptable output for MCP agents.
 - Leave room to add more Android utilities (e.g., bitmap → vector helpers, asset validators) under the same MCP server in the future.
 
-## Figma MCP pairing
-- Works well alongside the Figma MCP server: grab SVGs from designs and pass them directly to `convert-svg-to-android-drawable`.
-- Useful for replacing emoji flags or exported PNGs with scalable VectorDrawable assets in language pickers and similar screens.
-- Example flow: request SVG from Figma → feed inline SVG to the tool → get XML ready for Android resources.
+## Pairing ideas
+- **Figma MCP**: grab SVGs from designs, feed to `convert-svg-to-android-drawable` to get XML for Android resources.
+- **Debugging**: while running the app, call `read-adb-logcat` with package name or tag to capture crashes and filtered logs without leaving the MCP client.
 
 ### Previews
 **SVG to VectorDrawable**
