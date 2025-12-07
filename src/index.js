@@ -1,0 +1,170 @@
+#!/usr/bin/env node
+const fs = require('node:fs/promises');
+const path = require('node:path');
+const { createHash } = require('node:crypto');
+
+const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js');
+const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js');
+const z = require('zod/v4');
+const svg2vectordrawable = require('../vendor/svg2vectordrawable');
+
+const serverInstructions = [
+  'Use this server whenever you need Android VectorDrawable XML from SVG.',
+  'Call tool convert-svg-to-android-drawable when the task is to turn SVG markup or a file into VectorDrawable, compare SVG vs drawable output, or adjust precision/fill/tint.',
+  'Pass svg with inline markup when available; otherwise pass svgPath (absolute or caller-provided relative path). Do not invent file paths.',
+  'Only set outputPath if the caller wants a file written; leave it unset to return XML inline.',
+  'Keep floatPrecision at 2 unless the caller requests higher fidelity or smaller size; toggle fillBlack when missing fills, xmlTag when an XML declaration is needed, and tint only when the caller wants a color override.'
+].join('\n');
+
+const server = new McpServer(
+  {
+    name: 'svg-to-android-drawable',
+    version: '1.0.0'
+  },
+  {
+    capabilities: { logging: {} },
+    instructions: serverInstructions
+  }
+);
+
+const convertInputSchema = z
+  .object({
+    svg: z.string().min(1).describe('Inline SVG markup to convert').optional(),
+    svgPath: z.string().min(1).describe('Path to an SVG file to read').optional(),
+    outputPath: z
+      .string()
+      .min(1)
+      .describe('Optional output path for generated VectorDrawable XML')
+      .optional(),
+    floatPrecision: z
+      .number()
+      .int()
+      .min(0)
+      .max(6)
+      .default(2)
+      .describe('Decimal precision when serializing coordinates'),
+    fillBlack: z.boolean().default(false).describe('Force fill color black when missing'),
+    xmlTag: z.boolean().default(false).describe('Include XML declaration'),
+    tint: z.string().min(1).optional().describe('Android tint color (e.g. #FF000000)'),
+    cache: z
+      .boolean()
+      .default(true)
+      .describe('Reuse cached result for identical inputs within this process')
+  })
+  .refine(data => data.svg || data.svgPath, { message: 'Provide either svg or svgPath' });
+
+const conversionCache = new Map();
+const MAX_CACHE_SIZE = 32;
+
+function makeCacheKey(svg, options) {
+  const hash = createHash('sha256');
+  hash.update(svg);
+  hash.update(JSON.stringify(options));
+  return hash.digest('hex');
+}
+
+function getCached(key) {
+  const existing = conversionCache.get(key);
+  if (!existing) return null;
+  // Refresh LRU order by reinserting.
+  conversionCache.delete(key);
+  conversionCache.set(key, existing);
+  return existing;
+}
+
+function setCache(key, value) {
+  if (conversionCache.size >= MAX_CACHE_SIZE) {
+    const oldestKey = conversionCache.keys().next().value;
+    if (oldestKey) {
+      conversionCache.delete(oldestKey);
+    }
+  }
+  conversionCache.set(key, value);
+}
+
+async function loadSvg(params) {
+  if (params.svg) return params.svg;
+  const resolvedPath = path.resolve(params.svgPath);
+  return fs.readFile(resolvedPath, 'utf8');
+}
+
+async function maybeWriteOutput(outputPath, xml) {
+  if (!outputPath) return null;
+  const resolvedPath = path.resolve(outputPath);
+  await fs.mkdir(path.dirname(resolvedPath), { recursive: true });
+  await fs.writeFile(resolvedPath, xml, 'utf8');
+  return resolvedPath;
+}
+
+server.registerTool(
+  'convert-svg-to-android-drawable',
+  {
+    title: 'SVG to VectorDrawable',
+    description:
+      'Convert SVG markup or files into Android VectorDrawable XML quickly, optionally writing to disk.',
+    inputSchema: convertInputSchema
+  },
+  async (params, extra) => {
+    const svgCode = await loadSvg(params);
+    const options = {
+      floatPrecision: params.floatPrecision,
+      fillBlack: params.fillBlack,
+      xmlTag: params.xmlTag,
+      tint: params.tint
+    };
+
+    const cacheKey = makeCacheKey(svgCode, options);
+    const startTime = process.hrtime.bigint();
+
+    let xml = null;
+    if (params.cache) {
+      xml = getCached(cacheKey);
+    }
+
+    if (!xml) {
+      xml = await svg2vectordrawable(svgCode, options);
+      if (!xml || typeof xml !== 'string') {
+        throw new Error('Conversion did not produce XML');
+      }
+      setCache(cacheKey, xml);
+    }
+
+    const savedPath = await maybeWriteOutput(params.outputPath, xml);
+    const elapsedMs = Number(process.hrtime.bigint() - startTime) / 1_000_000;
+
+    if (extra && typeof extra.sessionId === 'string') {
+      server
+        .sendLoggingMessage(
+          {
+            level: 'info',
+            data:
+              `Converted SVG in ${elapsedMs.toFixed(2)}ms` +
+              (savedPath ? ` (saved to ${savedPath})` : '')
+          },
+          extra.sessionId
+        )
+        .catch(() => {
+          /* best-effort logging */
+        });
+    }
+
+    const content = [];
+    if (savedPath) {
+      content.push({ type: 'text', text: `Saved VectorDrawable to ${savedPath}` });
+    }
+    content.push({ type: 'text', text: xml });
+
+    return { content };
+  }
+);
+
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  process.stdin.resume();
+}
+
+main().catch(error => {
+  console.error('Failed to start MCP server:', error);
+  process.exit(1);
+});
