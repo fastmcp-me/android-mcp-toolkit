@@ -14,14 +14,20 @@ Small MCP server that turns SVG markup/files into Android VectorDrawable XML. Bu
 
 ### Previews
 **SVG to VectorDrawable**
-![Figma request via MCP](assets/figma/figma-request.png)
-![Flag conversion preview](assets/figma/flag-uk-preview.png)
-![Batch flag review](assets/figma/flag-batch-review.png)
-![Batch run via MCP](assets/figma/flag-batch-runs.png)
+- Figma request → SVG extraction  
+  ![Figma request via MCP](assets/figma/figma-request.png)
+- Flag conversion preview (single)  
+  ![Flag conversion preview](assets/figma/flag-uk-preview.png)
+- Batch flag review (side-by-side)  
+  ![Batch flag review](assets/figma/flag-batch-review.png)
+- Batch run via MCP (console)  
+  ![Batch run via MCP](assets/figma/flag-batch-runs.png)
 
 **ADB logcat tool**
-![Crash logcat prompt](assets/figma/my%20app%20just.png)
-![Response gap prompt](assets/figma/Isease%20gap.png)
+- Crash capture prompt (inputs + filters)  
+  ![Crash logcat prompt](assets/figma/my%20app%20just.png)
+- Response preview (summarized logcat)  
+  ![Response gap prompt](assets/figma/Isease%20gap.png)
 
 ## Current tools
 - `convert-svg-to-android-drawable`
