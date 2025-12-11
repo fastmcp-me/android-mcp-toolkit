@@ -1,8 +1,9 @@
 # Android MCP Toolkit for AI Agents
 
-Small MCP server with two tools:
+Small MCP server with three tools:
 - Fast SVG → Android VectorDrawable conversion (cached, file or inline).
 - adb logcat reader with package/pid/tag filters for quick crash triage.
+- Translation length difference estimator to flag risky length deltas before layout breaks.
 
 ## Why this exists
 **The Mission: Bringing Native Android to the AI Agent Era**
@@ -71,6 +72,10 @@ While the AI ecosystem flourishes with web-first tools, Android development ofte
 - `clear-logcat-buffer`
   - Inputs: `timeoutMs` (default `5000`, max `15000`).
   - Behavior: Runs `adb logcat -c` to clear buffers before a new scenario.
+
+- `estimate-text-length-difference`
+  - Inputs: `sourceText` (original), `translatedText` (to compare), `tolerancePercent` (default `30`, max `500`).
+  - Behavior: Measures grapheme length of both strings, computes percent change, and reports whether it exceeds the tolerance (useful to catch translation length blowups that could break layouts).
 
 ## Roadmap (planned)
 - Additional MCP tools for Android assets (e.g., batch conversions, validations, optimizers).
