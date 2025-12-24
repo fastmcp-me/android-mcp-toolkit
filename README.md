@@ -1,3 +1,10 @@
+[![Add to Cursor](https://fastmcp.me/badges/cursor_dark.svg)](https://fastmcp.me/MCP/Details/1404/android-mcp-toolkit)
+[![Add to VS Code](https://fastmcp.me/badges/vscode_dark.svg)](https://fastmcp.me/MCP/Details/1404/android-mcp-toolkit)
+[![Add to Claude](https://fastmcp.me/badges/claude_dark.svg)](https://fastmcp.me/MCP/Details/1404/android-mcp-toolkit)
+[![Add to ChatGPT](https://fastmcp.me/badges/chatgpt_dark.svg)](https://fastmcp.me/MCP/Details/1404/android-mcp-toolkit)
+[![Add to Codex](https://fastmcp.me/badges/codex_dark.svg)](https://fastmcp.me/MCP/Details/1404/android-mcp-toolkit)
+[![Add to Gemini](https://fastmcp.me/badges/gemini_dark.svg)](https://fastmcp.me/MCP/Details/1404/android-mcp-toolkit)
+
 # Android MCP Toolkit for AI Agents
 
 Small MCP server with three tools:
